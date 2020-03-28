@@ -33,6 +33,32 @@ public class NeuralNetwork {
 		
 	}
 	
+	public NeuralNetwork(SimpleMatrix[] weights, SimpleMatrix[] biases) {
+		
+		this.inputSize = weights[0].numCols();
+
+		// Create hidden/output layers
+		this.activeLayers = new Layer[biases.length];
+		
+		int layerSize;
+		int previousLayerSize = this.inputSize;
+		
+		for (int i = 0; i < this.activeLayers.length; i++) {
+			
+			layerSize = weights[i].numRows();
+
+			if (weights[i].numCols() != previousLayerSize)
+				throw new RuntimeException("Layer " + (i+1) + " weights columns (" + weights[i].numCols() + ") does not match previous layer size: " + previousLayerSize);
+
+			if (biases[i].numRows() != layerSize)
+				throw new RuntimeException("Layer " + (i+1) + " biases rows (" + biases[i].numRows() + ") does not match layer size: " + layerSize);
+			
+			this.activeLayers[i] = new Layer(weights[i], biases[i]);
+			
+		}
+		
+	}
+	
 	/**
 	 * @param layerIndex The layer to get the weights of (zero-based including the input layer, which doesn't really exist, so the first active layer index is 1)
 	 * @return A copy of the weights matrix
@@ -62,7 +88,7 @@ public class NeuralNetwork {
 
 		if (!inputs.isVector())
 			throw new RuntimeException("Inputs must be a vector");
-
+		
 		if (inputs.numRows() != this.inputSize)
 			throw new RuntimeException("Inputs length (" + inputs.numRows() + ") must match network input size (" + this.inputSize + ")");
 		
@@ -79,8 +105,23 @@ public class NeuralNetwork {
 		
 	}
 	
+	/**
+	 * Prints information about the network
+	 */
+	public void print() {
+		
+		System.out.printf("%d", this.inputSize);
+		
+		for (int i = 0; i < this.activeLayers.length; i++)
+			System.out.printf(", %d", this.activeLayers[i].size);
+		
+		System.out.println();
+		
+	}
+	
 	private class Layer {
 		
+		private int size;
 		private SimpleMatrix weights;
 		private SimpleMatrix biases;
 		
@@ -90,12 +131,30 @@ public class NeuralNetwork {
 		 */
 		public Layer(int numNodes, int previousLayerNumNodes) {
 			
+			this.size = numNodes;
+			
 			this.biases = new SimpleMatrix(numNodes, 1);
 			this.weights = new SimpleMatrix(numNodes, previousLayerNumNodes);
 			
 		}
 		
+		public Layer(SimpleMatrix weights, SimpleMatrix biases) {
+			
+			if (!biases.isVector())
+				throw new RuntimeException("Biases should be a vector");
+			
+			this.size = weights.numRows();
+			
+			this.weights = new SimpleMatrix(weights);
+			this.biases = new SimpleMatrix(biases);
+			
+		}
+		
 		public SimpleMatrix feedForward(SimpleMatrix inputs) {
+			
+			this.weights.print();
+			this.weights.mult(inputs).print();
+			this.biases.print();
 			
 			return this.weights.mult(inputs).plus(this.biases);
 			
