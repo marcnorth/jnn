@@ -34,6 +34,26 @@ public class NeuralNetwork {
 	}
 	
 	/**
+	 * @param layerIndex The layer to get the weights of (zero-based including the input layer, which doesn't really exist, so the first active layer index is 1)
+	 * @return A copy of the weights matrix
+	 */
+	public SimpleMatrix getWeightsForLayer(int layerIndex) {
+		
+		return new SimpleMatrix(this.activeLayers[layerIndex - 1].weights);
+		
+	}
+
+	/**
+	 * @param layerIndex The layer to get the biases of (zero-based including the input layer, which doesn't really exist, so the first active layer index is 1)
+	 * @return A copy of the biases matrix
+	 */
+	public SimpleMatrix getBiasesForLayer(int layerIndex) {
+		
+		return new SimpleMatrix(this.activeLayers[layerIndex - 1].biases);
+		
+	}
+	
+	/**
 	 * Feeds the given inputs through the network
 	 * @param inputs
 	 * @return Output of the output layer
