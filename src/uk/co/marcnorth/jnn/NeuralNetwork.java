@@ -17,7 +17,10 @@ public class NeuralNetwork {
 			throw new RuntimeException("Network must have at least two layers");
 		
 		// Set input size
-		this.setInputSize(layerSizes[0]);
+		if (layerSizes[0] <= 0)
+			throw new RuntimeException("Network input size must be greater than 0");
+		
+		this.inputSize = layerSizes[0];
 		
 		// Create hidden/output layers
 		this.activeLayers = new Layer[layerSizes.length - 1];
@@ -56,18 +59,9 @@ public class NeuralNetwork {
 		
 	}
 	
-	private void setInputSize(int size) {
-		
-		if (size <= 0)
-			throw new RuntimeException("Network input size must be greater than 0");
-		
-		this.inputSize = size;
-		
-	}
-	
 	private class Layer {
 		
-		private SimpleMatrix[] weights;
+		private SimpleMatrix weights;
 		private SimpleMatrix biases;
 		
 		/**
@@ -77,17 +71,13 @@ public class NeuralNetwork {
 		public Layer(int numNodes, int previousLayerNumNodes) {
 			
 			this.biases = new SimpleMatrix(numNodes, 1);
-			
-			this.weights = new SimpleMatrix[numNodes];
-			
-			for (int i = 0; i < numNodes; i++)
-				this.weights[i] = new SimpleMatrix(numNodes, previousLayerNumNodes);
+			this.weights = new SimpleMatrix(numNodes, previousLayerNumNodes);
 			
 		}
 		
 		public SimpleMatrix feedForward(SimpleMatrix inputs) {
 			
-			return inputs;
+			return this.weights.mult(inputs).plus(this.biases);
 			
 		}
 		
