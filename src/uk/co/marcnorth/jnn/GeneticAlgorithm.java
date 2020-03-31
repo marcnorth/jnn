@@ -1,10 +1,13 @@
 package uk.co.marcnorth.jnn;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 import org.ejml.simple.SimpleMatrix;
+
+import uk.co.marcnorth.jnn.NeuralNetwork.Init;
 
 public class GeneticAlgorithm {
   
@@ -60,14 +63,14 @@ public class GeneticAlgorithm {
 	  
 	  CountDownLatch latch = new CountDownLatch(this.networks.length);
 	  
-	  final NeuralNetworkTaskInstance[] taskScores = new NeuralNetworkTaskInstance[this.networks.length];
+	  final NeuralNetworkTaskInstance[] taskInstances = new NeuralNetworkTaskInstance[this.networks.length];
 	  
 	  // Run the task on each network
 	  for (int i = 0; i < this.networks.length; i++) {
 	    
-	    taskScores[i] = new NeuralNetworkTaskInstance(this.task, this.networks[i], latch);
+	    taskInstances [i] = new NeuralNetworkTaskInstance(this.task, this.networks[i], latch);
 	    
-	    new Thread(taskScores[i]).start();
+	    new Thread(taskInstances[i]).start();
 	    
 	  }
 	  
@@ -82,7 +85,19 @@ public class GeneticAlgorithm {
       
     }
     
-    this.createNewGeneration(taskScores);
+    // Sort instances by score
+    Arrays.sort(taskInstances);
+    
+    NeuralNetworkTaskInstance[] taskInstancesOrdered = new NeuralNetworkTaskInstance[taskInstances.length];
+    
+    for (int i = 0; i < taskInstances.length; i++)
+      taskInstancesOrdered[i] = taskInstances[taskInstances.length - i - 1];
+    
+    double maxScore = taskInstancesOrdered[0].getScore();
+    
+    this.createNewGeneration(taskInstancesOrdered);
+    
+    System.out.printf("Generation %d: %f\n", this.currentGeneration, maxScore);
     
 	}
 	
@@ -92,13 +107,14 @@ public class GeneticAlgorithm {
 	 */
 	private void createNewGeneration(NeuralNetworkTaskInstance[] taskInstances) {
 	  
-    // Sort instances by score
-	  Arrays.sort(taskInstances);
-	  
 	  NeuralNetwork[] nextGeneration = new NeuralNetwork[this.networks.length];
 	  
 	  // Keep top networks for next generation
-	  System.arraycopy(this.networks, 0, nextGeneration, 0, this.numKeep);
+	  for (int i = 0; i < this.numKeep; i++) {
+	    
+	    nextGeneration[i] = taskInstances[i].getNetwork();
+	    
+	  }
 	  
 	  // Clone networks for next generation
 	  for (int i = 0; i < this.numClone; i++) {
@@ -130,9 +146,17 @@ public class GeneticAlgorithm {
 	    
 	  }
 	  
-    for (int i = 0; i < nextGeneration.length; i++)
-      System.out.println(nextGeneration[i]);
-    
+	  // Fill rest of next generation with random networks
+	  for (int i = 0; i < nextGeneration.length - this.numKeep - this.numClone - this.numBreed; i++) {
+	    
+	    int index = this.numKeep + this.numClone + this.numBreed + i;
+	    
+	    nextGeneration[index] = new NeuralNetwork(this.networks[0].getLayerSizes(), NeuralNetwork.Init.RANDOM);
+	    
+	  }
+	  
+	  this.networks = nextGeneration;
+	  
 	}
 	
 	/**
@@ -155,11 +179,6 @@ public class GeneticAlgorithm {
           nn2.getWeightsForLayer(l + 1),
       };
       
-      System.out.println("NN 1:");
-      layerWeights[0].print();
-      System.out.println("NN 2:");
-      layerWeights[1].print();
-      
       SimpleMatrix[] layerBiases = {
           nn1.getBiasesForLayer(l + 1),
           nn2.getBiasesForLayer(l + 1),
@@ -175,16 +194,11 @@ public class GeneticAlgorithm {
           
           int nnIndex = rand.nextInt(layerWeights.length);
           
-          System.out.println(nnIndex);
-          
           weights[l].set(r, c, layerWeights[nnIndex].get(r, c));
           
         }
         
       }
-
-      System.out.println("Child:");
-      weights[l].print();
       
       for (int r = 0; r < biases[l].numRows(); r++) {
         
