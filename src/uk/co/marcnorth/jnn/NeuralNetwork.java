@@ -152,10 +152,6 @@ public class NeuralNetwork {
 		
 		public SimpleMatrix feedForward(SimpleMatrix inputs) {
 			
-			this.weights.print();
-			this.weights.mult(inputs).print();
-			this.biases.print();
-			
 			return this.weights.mult(inputs).plus(this.biases);
 			
 		}
