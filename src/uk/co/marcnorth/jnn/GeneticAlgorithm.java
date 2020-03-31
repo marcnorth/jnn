@@ -29,23 +29,39 @@ public class GeneticAlgorithm {
 	  
 	  this.currentGeneration++;
 	  
-	  final CountDownLatch latch = new CountDownLatch(this.networks.length);
+	  CountDownLatch latch = new CountDownLatch(this.networks.length);
+	  
+	  final double[] scores = new double[this.networks.length];
 	  
 	  // Run the task on each network
 	  for (int i = 0; i < this.networks.length; i++) {
 	    
+	    final int index = i;
+	    
 	    Runnable run = new Runnable() {
-
+	      
+	      private NeuralNetwork nn;
+	      private NeuralNetworkTask task;
+	      
+	      public Runnable init(NeuralNetworkTask task, NeuralNetwork nn) {
+	        
+	        this.task = task;
+	        this.nn = nn;
+	        
+	        return this;
+	        
+	      }
+	      
         @Override
         public void run() {
            
-          //this.task.runTask(this.networks[i]);
+          scores[index] = this.task.runTask(this.nn);
           
           latch.countDown();
           
         }
         
-	    };
+	    }.init(this.task, this.networks[i]);
 	    
 	    new Thread(run).start();
 	    
@@ -61,6 +77,9 @@ public class GeneticAlgorithm {
       e.printStackTrace();
       
     }
+    
+    for (int i = 0; i < scores.length; i++)
+      System.out.println(scores[i]);
     
 	}
 	
