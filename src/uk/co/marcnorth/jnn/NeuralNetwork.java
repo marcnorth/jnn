@@ -59,6 +59,18 @@ public class NeuralNetwork {
 		
 	}
 	
+	public int getInputSize() {
+	  
+	  return this.inputSize;
+	  
+	}
+	
+	public int getNumActiveLayers() {
+	  
+	  return this.activeLayers.length;
+	  
+	}
+	
 	/**
 	 * @param layerIndex The layer to get the weights of (zero-based including the input layer, which doesn't really exist, so the first active layer index is 1)
 	 * @return A copy of the weights matrix
