@@ -32,10 +32,15 @@ public class GeneticAlgorithm {
 	private NeuralNetwork[] networks;
 	private NeuralNetworkTask task;
 	
-	public GeneticAlgorithm(NeuralNetwork[] networks, NeuralNetworkTask task) {
+	public GeneticAlgorithm(NeuralNetwork[] networks, NeuralNetworkTask task, int numKeep, int numClone, int numBreed, double mutationRate) {
 	  
 	  this.networks = networks;
 	  this.task = task;
+	  
+	  this.numKeep = numKeep;
+	  this.numClone = numClone;
+	  this.numBreed = numBreed;
+	  this.mutationRate = mutationRate;
 	  
 	}
 	
@@ -104,8 +109,100 @@ public class GeneticAlgorithm {
 	    
 	  }
 	  
+	  // Breed networks for next generation
+	  Random r = new Random();
+	  
+	  for (int i = 0; i < this.numBreed; i++) {
+	    
+	    int index = this.numKeep + this.numClone + i;
+	    
+	    // Select two networks from the networks being kept
+      int parent1 = r.nextInt(this.numKeep);
+	    int parent2;
+      
+      do {
+        
+        parent2 = r.nextInt(this.numKeep);
+        
+      } while (parent2 == parent1 || this.numKeep < 2);
+      
+	    nextGeneration[index] = this.breed(taskInstances[parent1].getNetwork(), taskInstances[parent2].getNetwork());
+	    
+	  }
+	  
     for (int i = 0; i < nextGeneration.length; i++)
       System.out.println(nextGeneration[i]);
+    
+	}
+	
+	/**
+	 * Breeds two networks, then mutates and returns child
+	 * @return
+	 */
+	private NeuralNetwork breed(NeuralNetwork nn1, NeuralNetwork nn2) {
+	  
+    int numActiveLayers = nn1.getNumActiveLayers();
+
+    SimpleMatrix[] weights = new SimpleMatrix[numActiveLayers];
+    SimpleMatrix[] biases = new SimpleMatrix[numActiveLayers];
+    
+    Random rand = new Random();
+    
+    for (int l = 0; l < numActiveLayers; l++) {
+      
+      SimpleMatrix[] layerWeights = {
+          nn1.getWeightsForLayer(l + 1),
+          nn2.getWeightsForLayer(l + 1),
+      };
+      
+      System.out.println("NN 1:");
+      layerWeights[0].print();
+      System.out.println("NN 2:");
+      layerWeights[1].print();
+      
+      SimpleMatrix[] layerBiases = {
+          nn1.getBiasesForLayer(l + 1),
+          nn2.getBiasesForLayer(l + 1),
+      };
+      
+      weights[l] = new SimpleMatrix(layerWeights[0].numRows(), layerWeights[0].numCols());
+      biases[l] = new SimpleMatrix(layerBiases[0].numRows(), layerBiases[0].numCols());
+      
+      // For each weight/bias select from either network at random
+      for (int r = 0; r < weights[l].numRows(); r++) {
+        
+        for (int c = 0; c < weights[l].numCols(); c++) {
+          
+          int nnIndex = rand.nextInt(layerWeights.length);
+          
+          System.out.println(nnIndex);
+          
+          weights[l].set(r, c, layerWeights[nnIndex].get(r, c));
+          
+        }
+        
+      }
+
+      System.out.println("Child:");
+      weights[l].print();
+      
+      for (int r = 0; r < biases[l].numRows(); r++) {
+        
+        for (int c = 0; c < biases[l].numCols(); c++) {
+          
+          int nnIndex = rand.nextInt(layerBiases.length);
+          
+          biases[l].set(r, c, layerBiases[nnIndex].get(r, c));
+          
+        }
+        
+      }
+      
+    }
+
+    NeuralNetwork child = new NeuralNetwork(weights, biases);
+    
+    return this.mutate(child);
     
 	}
 	
