@@ -211,8 +211,20 @@ public class NeuralNetwork {
 		
 		public SimpleMatrix feedForward(SimpleMatrix inputs) {
 			
-			return this.weights.mult(inputs).plus(this.biases);
+			return this.activation(this.weights.mult(inputs).plus(this.biases));
 			
+		}
+		
+		private SimpleMatrix activation(SimpleMatrix m) {
+		  
+		  for (int r = 0; r < m.numRows(); r++) {
+		    
+		    m.set(r, 0, Math.tanh(m.get(r, 0)));
+		    
+		  }
+		  
+		  return m;
+		  
 		}
 		
 	}

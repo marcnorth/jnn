@@ -1,13 +1,10 @@
 package uk.co.marcnorth.jnn;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 import org.ejml.simple.SimpleMatrix;
-
-import uk.co.marcnorth.jnn.NeuralNetwork.Init;
 
 public class GeneticAlgorithm {
   
@@ -96,8 +93,6 @@ public class GeneticAlgorithm {
     double maxScore = taskInstancesOrdered[0].getScore();
     
     this.createNewGeneration(taskInstancesOrdered);
-    
-    System.out.printf("Generation %d: %f\n", this.currentGeneration, maxScore);
     
 	}
 	
