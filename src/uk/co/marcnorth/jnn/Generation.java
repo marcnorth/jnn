@@ -13,7 +13,7 @@ public class Generation {
   private final Class<? extends NeuralNetworkTask> taskClass;
   private final int[] networkLayerSizes;
   private final NeuralNetwork[] networks;
-  private final List<Pair<NeuralNetwork, Double>> scores = new ArrayList<>();
+  private final List<Pair<NeuralNetwork, Double>> scores = Collections.synchronizedList(new ArrayList<>());
   private boolean hasStarted = false;
   private boolean sortedScores = false;
   private final CountDownLatch finishedCountDown;
